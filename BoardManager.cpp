@@ -14,6 +14,7 @@ Board* BoardManager::generateBoard(int rowCount, int colCount, int mineCount)
 			board->setCellValue(i, j, toCellValue(allCells[i * colCount + j]));
 		}
 	}
+	delete[] allCells;
 	return board;
 }
 

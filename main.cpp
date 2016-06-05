@@ -20,7 +20,7 @@ int main()
 		std::cout << "\n";
 	}
 	delete board;
-	GameLoop loop;
-	loop.run();
+	//GameLoop loop;
+	//loop.run();
 	return 0;
 }
