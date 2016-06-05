@@ -1,76 +1,52 @@
-#include <algorithm>
-#include <random>
-#include <chrono>
 #include "Board.h"
 
-Board::Board(int rows, int cols, int mines) : rs(rows), cs(cols), ms(mines), board(nullptr)
+Board::Board(int rowCount, int colCount)
+	: rows(rowCount), cols(colCount), board(nullptr), openedCells(nullptr)
 {
-	board = new int*[rs];
-	for (int i = 0; i < rs; ++i)
-	{
-		board[i] = new int[cs];
+	board = new CellValue*[rows];
+	openedCells = new bool*[rows];
 
-		for (int j = 0; j < cs; ++j)
+	for (int i = 0; i < rows; ++i)
+	{
+		board[i] = new CellValue[cols];
+		openedCells[i] = new bool[cols];
+
+		for (int j = 0; j < cols; ++j)
 		{
-			board[i][j] = 0;
+			board[i][j] = CellValue::EMPTY;
+			openedCells[i][j] = false;
 		}
 	}
-	setupMines();
 }
 
 Board::~Board()
 {
-	for (int i = 0; i < rs; ++i)
+	for (int i = 0; i < rows; ++i)
 	{
 		delete[] board[i];
+		delete[] openedCells[i];
 	}
 	delete[] board;
+	delete[] openedCells;
 }
 
-int Board::get(int r, int c)
+CellValue Board::getCellValue(int row, int col)
 {
-	return board[r][c];
+	return board[row][col];
 }
 
-void Board::setupMines()
+void Board::setCellValue(int row, int col, CellValue val)
 {
-	for (const auto& mine : generateMines())
-	{
-		int i = mine.first;
-		int j = mine.second;
-		board[i][j] = MINE;
-		static const int m = 8;
-		static int is[m] = {-1, -1, 0, 1, 1, 1, 0, -1};
-		static int js[m] = {0, 1, 1, 1, 0, -1, -1, -1};
-		for (int k = 0; k < m; ++k)
-		{
-			int ni = i + is[k];
-			int nj = j + js[k];
-			if (ni >= 0 && ni < rs && nj >= 0 && nj < cs && board[ni][nj] != MINE)
-			{
-				++board[ni][nj];
-			}
-		}
-	}
+	board[row][col] = val;
 }
 
-std::vector<std::pair<int, int> > Board::generateMines()
+bool Board::isCellOpened(int row, int col)
 {
-	int n = rs * cs;
-	bool allCells[n] = {false};
-	for (int i = 0; i < ms; ++i)
-	{
-		allCells[i] = true;
-	}
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::shuffle(allCells, allCells + n, std::default_random_engine(seed));
-	std::vector<std::pair<int, int> > mines;
-	for (int i = 0; i < n; ++i)
-	{
-		if (allCells[i])
-		{
-			mines.push_back({i / cs, i % cs});
-		}
-	}
-	return std::move(mines);
+	return openedCells[row][col];
 }
+
+void Board::openCell(int row, int col)
+{
+	openedCells[row][col] = true;
+}
+
