@@ -6,20 +6,15 @@
 class GameLoop
 {
 	public:
-		GameLoop() : window(nullptr), renderer(nullptr), running(true) {}
-		~GameLoop()
-		{
-			cleanup();
-		}
+		GameLoop();
+		~GameLoop();
 		void run();
 
 	private:
-		bool running;
 		SDL_Window* window;
 		SDL_Renderer* renderer;
-		bool init();
+		bool running;
 		void onEvent(SDL_Event* event);
-		void cleanup();
 };
 
 #endif

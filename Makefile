@@ -1,7 +1,7 @@
 SOURCES = *.cpp
 CC = g++
-COMPILER_FLAGS = -std=c++11
-LINKER_FLAGS = -lSDL2
+COMPILER_FLAGS = -std=c++11 -Wall -Werror
+LINKER_FLAGS = -lSDL2 -lSDL2_image
 EXECUTABLE = minesweeper
 
 all:
