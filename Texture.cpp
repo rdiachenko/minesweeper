@@ -12,6 +12,7 @@ Texture::Texture(SDL_Renderer* const renderer, std::string path) : texture(nullp
 	}
 	else
 	{
+		SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, 0x00, 0xB4, 0x83));
 		texture = SDL_CreateTextureFromSurface(renderer, surface);
 		
 		if (texture == nullptr)
