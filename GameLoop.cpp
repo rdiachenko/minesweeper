@@ -2,6 +2,7 @@
 #include "GameLoop.h"
 #include "Config.h"
 #include "Texture.h"
+#include "Sprite.h"
 
 GameLoop::GameLoop() : window(nullptr), renderer(nullptr), running(false)
 {
@@ -50,7 +51,8 @@ void GameLoop::run()
 	SDL_Event event;
 
 	// testing
-	SDL_Rect spriteClip = {28, 24, 26, 26};
+	Sprite sprite;
+	SDL_Rect clip = sprite.getClip(17);
 	Texture texture(renderer, "sprites/classic.png");
 
 	while (running)
@@ -63,7 +65,9 @@ void GameLoop::run()
 		SDL_RenderClear(renderer);
 
 		// testing
-		texture.render(50, 50, &spriteClip, renderer);
+		for (int x = 0; x < 100; x += 16)
+			for (int y = 0; y < 100; y += 16)
+				texture.render(x, y, &clip, renderer);
 
 		SDL_RenderPresent(renderer);
 	}
