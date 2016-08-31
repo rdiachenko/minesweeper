@@ -51,8 +51,7 @@ void GameLoop::run()
 	SDL_Event event;
 
 	// testing
-	Sprite sprite;
-	SDL_Rect clip = sprite.getClip(17);
+	const SDL_Rect* clip = Sprite::clip(Sprite::CELL_BOMB_WRONG);
 	Texture texture(renderer, "sprites/classic.png");
 
 	while (running)
@@ -67,7 +66,7 @@ void GameLoop::run()
 		// testing
 		for (int x = 0; x < 100; x += 16)
 			for (int y = 0; y < 100; y += 16)
-				texture.render(x, y, &clip, renderer);
+				texture.render(x, y, clip, renderer);
 
 		SDL_RenderPresent(renderer);
 	}
