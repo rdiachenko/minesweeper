@@ -1,16 +1,6 @@
 #include <algorithm>
 #include "SmileBar.h"
-#include "Clip.h"
 #include "Config.h"
-
-enum class SmileState
-{
-	INIT = Clip::SMILE_INIT,
-	PRESSED = Clip::SMILE_PRESSED,
-	WONDER = Clip::SMILE_O,
-	WIN = Clip::SMILE_WIN,
-	LOSE = Clip::SMILE_LOSE
-};
 
 static const int DIGITS[10] =
 {
@@ -61,6 +51,16 @@ void SmileBar::reset()
 {
 	timeSecs = 0;
 	minesLeft = minesInit;
+}
+
+bool SmileBar::insideSmile(int x, int y)
+{
+	const SDL_Rect* clip = Clip::clip(static_cast<const int>(SmileState::INIT));
+	int x0 = SCREEN_WIDTH / 2 - clip->w / 2;
+	int x1 = x0 + clip->w;
+	int y0 = 2;
+	int y1 = y0 + clip->h;
+	return x >= x0 && x <= x1 && y >= y0 && y <= y1;
 }
 
 void SmileBar::renderTimeCount(Texture& texture, SDL_Renderer* const renderer)

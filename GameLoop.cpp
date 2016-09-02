@@ -2,10 +2,8 @@
 #include "GameLoop.h"
 #include "Config.h"
 #include "Texture.h"
-#include "SmileBar.h"
-#include "GameField.h"
 
-GameLoop::GameLoop() : window(nullptr), renderer(nullptr), running(false)
+GameLoop::GameLoop() : window(nullptr), renderer(nullptr), smileBar(nullptr), gameField(nullptr), running(false)
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -31,6 +29,8 @@ GameLoop::GameLoop() : window(nullptr), renderer(nullptr), running(false)
 			{
 				SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, BACKGROUND_COLOR_OPAQUE);
 				SDL_RenderPresent(renderer);
+				smileBar = new SmileBar(99);
+				gameField = new GameField(16, 30);
 			}
 		}
 	}
@@ -38,6 +38,14 @@ GameLoop::GameLoop() : window(nullptr), renderer(nullptr), running(false)
 
 GameLoop::~GameLoop()
 {
+	if (smileBar != nullptr)
+	{
+		delete smileBar;
+	}
+	if (gameField != nullptr)
+	{
+		delete gameField;
+	}
 	SDL_DestroyRenderer(renderer);
 	renderer = nullptr;
 	SDL_DestroyWindow(window);
@@ -51,8 +59,6 @@ void GameLoop::run()
 	running = true;
 	SDL_Event event;
 	Texture texture(renderer, "sprites/classic.png");
-	SmileBar smileBar(99);
-	GameField gameField(16, 30);
 
 	while (running)
 	{
@@ -62,8 +68,8 @@ void GameLoop::run()
 		}
 		SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, BACKGROUND_COLOR_OPAQUE);
 		SDL_RenderClear(renderer);
-		smileBar.render(texture, renderer);
-		gameField.render(texture, renderer);
+		smileBar->render(texture, renderer);
+		gameField->render(texture, renderer);
 		SDL_RenderPresent(renderer);
 	}
 }
@@ -73,5 +79,30 @@ void GameLoop::onEvent(SDL_Event* event)
 	if (event->type == SDL_QUIT)
 	{
 		running = false;
+	}
+	else if (event->type == SDL_MOUSEBUTTONDOWN)
+	{
+		if ((event->button).button == SDL_BUTTON_LEFT)
+		{
+			int x = (event->button).x;
+			int y = (event->button).y;
+			if (smileBar->insideSmile(x, y))
+			{
+				smileBar->setSmileState(SmileState::PRESSED);
+			}
+		}
+	}
+	else if (event->type == SDL_MOUSEBUTTONUP)
+	{
+		if ((event->button).button == SDL_BUTTON_LEFT)
+		{
+			int x = (event->button).x;
+			int y = (event->button).y;
+			if (smileBar->insideSmile(x, y))
+			{
+				smileBar->setSmileState(SmileState::INIT);
+				smileBar->reset();
+			}
+		}
 	}
 }

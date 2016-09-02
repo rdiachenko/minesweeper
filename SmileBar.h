@@ -4,8 +4,16 @@
 #include <SDL2/SDL.h>
 #include <deque>
 #include "Texture.h"
+#include "Clip.h"
 
-enum class SmileState : const int;
+enum class SmileState : const int
+{
+	INIT = Clip::SMILE_INIT,
+	PRESSED = Clip::SMILE_PRESSED,
+	WONDER = Clip::SMILE_O,
+	WIN = Clip::SMILE_WIN,
+	LOSE = Clip::SMILE_LOSE
+};
 
 class SmileBar
 {
@@ -18,6 +26,7 @@ class SmileBar
 		void setSmileState(SmileState state);
 		void render(Texture& texture, SDL_Renderer* const renderer);
 		void reset();
+		bool insideSmile(int x, int y);
 
 	private:
 		int timeSecs;
