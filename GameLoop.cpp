@@ -2,7 +2,8 @@
 #include "GameLoop.h"
 #include "Config.h"
 #include "Texture.h"
-#include "Sprite.h"
+#include "Clip.h"
+#include "SmileBar.h"
 
 GameLoop::GameLoop() : window(nullptr), renderer(nullptr), running(false)
 {
@@ -49,10 +50,8 @@ void GameLoop::run()
 {
 	running = true;
 	SDL_Event event;
-
-	// testing
-	const SDL_Rect* clip = Sprite::clip(Sprite::CELL_BOMB_WRONG);
 	Texture texture(renderer, "sprites/classic.png");
+	SmileBar smileBar(99);
 
 	while (running)
 	{
@@ -63,10 +62,12 @@ void GameLoop::run()
 		SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, BACKGROUND_COLOR_OPAQUE);
 		SDL_RenderClear(renderer);
 
-		// testing
-		for (int x = 0; x < 100; x += 16)
-			for (int y = 0; y < 100; y += 16)
-				texture.render(x, y, clip, renderer);
+		smileBar.render(texture, renderer);
+
+		const SDL_Rect* cellInitClip = Clip::clip(Clip::CELL_INIT);
+		for (int x = 0; x < SCREEN_WIDTH; x += cellInitClip->w)
+			for (int y = 30; y < SCREEN_HEIGHT; y += cellInitClip->h)
+				texture.render(x, y, cellInitClip, renderer);
 
 		SDL_RenderPresent(renderer);
 	}
