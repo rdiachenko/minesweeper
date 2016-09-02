@@ -28,9 +28,9 @@ class Clip
 		static const int CELL_FLAG = 17;
 		static const int CELL_QM_INIT = 18;
 		static const int CELL_QM_PRESSED = 19;
-		static const int CELL_BOMB_OK = 20;
-		static const int CELL_BOMB_LOSE = 21;
-		static const int CELL_BOMB_WRONG = 22;
+		static const int CELL_MINE_OK = 20;
+		static const int CELL_MINE_LOSE = 21;
+		static const int CELL_MINE_WRONG = 22;
 
 		static const int CELL_1 = 23;
 		static const int CELL_2 = 24;

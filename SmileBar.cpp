@@ -26,7 +26,7 @@ static const int DIGITS[10] =
 	Clip::DIGIT_9
 };
 
-SmileBar::SmileBar(int mines) : timeSecs(0), minesLeft(mines), smileState(SmileState::INIT)
+SmileBar::SmileBar(int mines) : timeSecs(0), minesInit(mines), minesLeft(mines), smileState(SmileState::INIT)
 {
 }
 
@@ -55,6 +55,12 @@ void SmileBar::render(Texture& texture, SDL_Renderer* const renderer)
 	renderSmile(texture, renderer);
 	renderTimeCount(texture, renderer);
 	renderMineCount(texture, renderer);
+}
+
+void SmileBar::reset()
+{
+	timeSecs = 0;
+	minesLeft = minesInit;
 }
 
 void SmileBar::renderTimeCount(Texture& texture, SDL_Renderer* const renderer)

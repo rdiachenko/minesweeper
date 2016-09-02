@@ -17,9 +17,11 @@ class SmileBar
 		void decrMines();
 		void setSmileState(SmileState state);
 		void render(Texture& texture, SDL_Renderer* const renderer);
+		void reset();
 
 	private:
 		int timeSecs;
+		int minesInit;
 		int minesLeft;
 		SmileState smileState;
 		void renderTimeCount(Texture& texture, SDL_Renderer* const renderer);
