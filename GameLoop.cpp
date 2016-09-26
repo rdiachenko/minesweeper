@@ -47,9 +47,7 @@ GameLoop::~GameLoop()
 		delete gameField;
 	}
 	SDL_DestroyRenderer(renderer);
-	renderer = nullptr;
 	SDL_DestroyWindow(window);
-	window = nullptr;
 	running = false;
 	SDL_Quit();
 }
@@ -80,29 +78,9 @@ void GameLoop::onEvent(SDL_Event* event)
 	{
 		running = false;
 	}
-	else if (event->type == SDL_MOUSEBUTTONDOWN)
+	else
 	{
-		if ((event->button).button == SDL_BUTTON_LEFT)
-		{
-			int x = (event->button).x;
-			int y = (event->button).y;
-			if (smileBar->insideSmile(x, y))
-			{
-				smileBar->setSmileState(SmileState::PRESSED);
-			}
-		}
-	}
-	else if (event->type == SDL_MOUSEBUTTONUP)
-	{
-		if ((event->button).button == SDL_BUTTON_LEFT)
-		{
-			int x = (event->button).x;
-			int y = (event->button).y;
-			if (smileBar->insideSmile(x, y))
-			{
-				smileBar->setSmileState(SmileState::INIT);
-				smileBar->reset();
-			}
-		}
+		gameField->handleEvent(event);
+		smileBar->handleEvent(event);
 	}
 }

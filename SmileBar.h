@@ -6,14 +6,7 @@
 #include "Texture.h"
 #include "Clip.h"
 
-enum class SmileState : const int
-{
-	INIT = Clip::SMILE_INIT,
-	PRESSED = Clip::SMILE_PRESSED,
-	WONDER = Clip::SMILE_O,
-	WIN = Clip::SMILE_WIN,
-	LOSE = Clip::SMILE_LOSE
-};
+enum class SmileState : const int;
 
 class SmileBar
 {
@@ -23,10 +16,8 @@ class SmileBar
 		void incrTime();
 		void incrMines();
 		void decrMines();
-		void setSmileState(SmileState state);
 		void render(Texture& texture, SDL_Renderer* const renderer);
-		void reset();
-		bool insideSmile(int x, int y);
+		void handleEvent(SDL_Event* event);
 
 	private:
 		int timeSecs;
@@ -37,7 +28,9 @@ class SmileBar
 		void renderMineCount(Texture& texture, SDL_Renderer* const renderer);
 		void renderSmile(Texture& texture, SDL_Renderer* const renderer);
 		void renderCount(int x, int y, int count, Texture& texture, SDL_Renderer* const renderer);
+		void reset();
 		std::deque<int> toDigits(int val);
+		bool insideSmile(int x, int y);
 };
 
 #endif

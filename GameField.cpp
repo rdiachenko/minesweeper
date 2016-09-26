@@ -1,5 +1,6 @@
 #include "GameField.h"
 #include "Clip.h"
+#include "Config.h"
 
 enum class CellState
 {
@@ -43,15 +44,10 @@ GameField::~GameField()
 	delete[] field;
 }
 
-void GameField::setCellState(int r, int c, CellState state)
-{
-	field[r][c] = state;
-}
-
 void GameField::render(Texture& texture, SDL_Renderer* const renderer)
 {
 	int x = 0;
-	int xStep = Clip::clip(Clip::CELL_INIT)->w;
+	int xStep = Clip::clip(static_cast<const int>(CellState::INIT))->w;
 
 	for (size_t c = 0; c < cs; c++, x += xStep)
 	{
@@ -65,6 +61,10 @@ void GameField::render(Texture& texture, SDL_Renderer* const renderer)
 	}
 }
 
+void GameField::handleEvent(SDL_Event* event)
+{
+}
+
 void GameField::reset()
 {
 	for (size_t r = 0; r < rs; r++)
@@ -74,4 +74,9 @@ void GameField::reset()
 			field[r][c] = CellState::INIT;
 		}
 	}
+}
+
+bool GameField::insideField(int x, int y)
+{
+	return x >= 0 && x <= SCREEN_WIDTH && y >= 30 && y <= SCREEN_HEIGHT;
 }
