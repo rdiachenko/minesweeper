@@ -3,14 +3,13 @@
 
 #include <SDL2/SDL.h>
 #include "Texture.h"
-//#include "FieldModel.h"
 
 enum class CellState : const int;
 
 class GameField
 {
 	public:
-		GameField(size_t rows, size_t cols);
+		GameField(size_t rows, size_t cols, size_t mines);
 		~GameField();
 		void render(Texture& texture, SDL_Renderer* const renderer);
 		void handleEvent(SDL_Event* event);
@@ -18,10 +17,12 @@ class GameField
 	private:
 		size_t rs;
 		size_t cs;
-		CellState** field;
+		size_t ms;
+		CellState** front;
+		CellState** back;
 		void reset();
 		bool insideField(int x, int y);
-		//FieldModel* model;
+		void generateField();
 };
 
 #endif

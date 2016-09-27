@@ -30,7 +30,7 @@ GameLoop::GameLoop() : window(nullptr), renderer(nullptr), smileBar(nullptr), ga
 				SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, BACKGROUND_COLOR_OPAQUE);
 				SDL_RenderPresent(renderer);
 				smileBar = new SmileBar(99);
-				gameField = new GameField(16, 30);
+				gameField = new GameField(16, 30, 99);
 			}
 		}
 	}
