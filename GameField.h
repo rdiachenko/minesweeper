@@ -20,6 +20,8 @@ class GameField
 		size_t ms;
 		CellState** front;
 		CellState** back;
+		int pressedRow;
+		int pressedCol;
 		void reset();
 		bool insideField(int x, int y);
 		void generateField();

@@ -26,7 +26,8 @@ enum class CellState
 	MINES_8 = Clip::CELL_8
 };
 
-GameField::GameField(size_t rows, size_t cols, size_t mines) : rs(rows), cs(cols), ms(mines), front(nullptr), back(nullptr)
+GameField::GameField(size_t rows, size_t cols, size_t mines)
+	: rs(rows), cs(cols), ms(mines), front(nullptr), back(nullptr), pressedRow(-1), pressedCol(-1)
 {
 	front = new CellState*[rs];
 	back = new CellState*[rs];
@@ -73,6 +74,56 @@ void GameField::render(Texture& texture, SDL_Renderer* const renderer)
 
 void GameField::handleEvent(SDL_Event* event)
 {
+	int x = (event->button).x;
+	int y = (event->button).y;
+
+	const SDL_Rect* clip = Clip::clip(static_cast<const int>(CellState::INIT));
+	int r = (y - 30) / clip->h;
+	int c = x / clip->w;
+
+	if (event->type == SDL_MOUSEBUTTONDOWN)
+	{
+		if ((event->button).button == SDL_BUTTON_LEFT)
+		{
+			if (insideField(x, y) && front[r][c] == CellState::INIT)
+			{
+				pressedRow = r;
+				pressedCol = c;
+				switch (front[r][c])
+				{
+					case CellState::INIT:
+						front[r][c] = CellState::PRESSED;
+						break;
+					case CellState::QM_INIT:
+						front[r][c] = CellState::QM_PRESSED;
+						break;
+					default:
+						break;
+				}
+			}
+		}
+	}
+	else if (event->type == SDL_MOUSEBUTTONUP)
+	{
+		if ((event->button).button == SDL_BUTTON_LEFT)
+		{
+			if (pressedRow >= 0 && pressedCol >= 0)
+			{
+				switch (front[pressedRow][pressedCol])
+				{
+					case CellState::FLAG:
+						break;
+					case CellState::QM_PRESSED:
+						front[pressedRow][pressedCol] = CellState::QM_INIT;
+						break;
+					default:
+						front[pressedRow][pressedCol] = back[pressedRow][pressedCol];
+				}
+				pressedRow = -1;
+				pressedCol = -1;
+			}
+		}
+	}
 }
 
 void GameField::reset()
@@ -130,19 +181,39 @@ void GameField::generateField()
 		int c = i % cs;
 		switch (cells[i])
 		{
-			case -1: back[r][c] = CellState::MINE_OK; break;
-			case 0: back[r][c] = CellState::PRESSED; break;
-			case 1: back[r][c] = CellState::MINES_1; break;
-			case 2: back[r][c] = CellState::MINES_2; break;
-			case 3: back[r][c] = CellState::MINES_3; break;
-			case 4: back[r][c] = CellState::MINES_4; break;
-			case 5: back[r][c] = CellState::MINES_5; break;
-			case 6: back[r][c] = CellState::MINES_6; break;
-			case 7: back[r][c] = CellState::MINES_7; break;
-			case 8: back[r][c] = CellState::MINES_8; break;
+			case -1:
+				back[r][c] = CellState::MINE_OK;
+				break;
+			case 0:
+				back[r][c] = CellState::PRESSED;
+				break;
+			case 1:
+				back[r][c] = CellState::MINES_1;
+				break;
+			case 2:
+				back[r][c] = CellState::MINES_2;
+				break;
+			case 3:
+				back[r][c] = CellState::MINES_3;
+				break;
+			case 4:
+				back[r][c] = CellState::MINES_4;
+				break;
+			case 5:
+				back[r][c] = CellState::MINES_5;
+				break;
+			case 6:
+				back[r][c] = CellState::MINES_6;
+				break;
+			case 7:
+				back[r][c] = CellState::MINES_7;
+				break;
+			case 8:
+				back[r][c] = CellState::MINES_8;
+				break;
 			default:
 					std::cout << "WARN: No mapping for cell value: " << cells[i]
-					 << ". Empty cell will be used instead." << std::endl;
+						<< ". Empty cell will be used instead." << std::endl;
 					back[r][c] = CellState::PRESSED;
 		}
 	}
