@@ -2,9 +2,12 @@
 #include <algorithm>
 #include <random>
 #include <chrono>
+#include <deque>
 #include "GameField.h"
 #include "Clip.h"
 #include "Config.h"
+
+static const size_t INF = 123456789;
 
 enum class CellState
 {
@@ -27,7 +30,7 @@ enum class CellState
 };
 
 GameField::GameField(size_t rows, size_t cols, size_t mines)
-	: rs(rows), cs(cols), ms(mines), front(nullptr), back(nullptr), pressedRow(-1), pressedCol(-1)
+	: rs(rows), cs(cols), ms(mines), front(nullptr), back(nullptr), pressedRow(INF), pressedCol(INF)
 {
 	front = new CellState*[rs];
 	back = new CellState*[rs];
@@ -74,54 +77,87 @@ void GameField::render(Texture& texture, SDL_Renderer* const renderer)
 
 void GameField::handleEvent(SDL_Event* event)
 {
+	if (gameOver())
+	{
+		return;
+	}
 	int x = (event->button).x;
 	int y = (event->button).y;
 
 	const SDL_Rect* clip = Clip::clip(static_cast<const int>(CellState::INIT));
-	int r = (y - 30) / clip->h;
-	int c = x / clip->w;
+	size_t r = (y - 30) / clip->h;
+	size_t c = x / clip->w;
 
 	if (event->type == SDL_MOUSEBUTTONDOWN)
 	{
-		if ((event->button).button == SDL_BUTTON_LEFT)
+		if (insideField(x, y))
 		{
-			if (insideField(x, y) && front[r][c] == CellState::INIT)
+			pressedRow = r;
+			pressedCol = c;
+
+			switch (front[r][c])
 			{
-				pressedRow = r;
-				pressedCol = c;
-				switch (front[r][c])
-				{
-					case CellState::INIT:
-						front[r][c] = CellState::PRESSED;
-						break;
-					case CellState::QM_INIT:
-						front[r][c] = CellState::QM_PRESSED;
-						break;
-					default:
-						break;
-				}
+				case CellState::INIT:
+					front[r][c] = CellState::PRESSED;
+					break;
+				case CellState::QM_INIT:
+					front[r][c] = CellState::QM_PRESSED;
+					break;
+				default:
+					break;
 			}
 		}
 	}
 	else if (event->type == SDL_MOUSEBUTTONUP)
 	{
-		if ((event->button).button == SDL_BUTTON_LEFT)
+		if (pressedRow < INF && pressedCol < INF)
 		{
-			if (pressedRow >= 0 && pressedCol >= 0)
+			auto btnType = (event->button).button;
+
+			switch (front[pressedRow][pressedCol])
 			{
-				switch (front[pressedRow][pressedCol])
-				{
-					case CellState::FLAG:
-						break;
-					case CellState::QM_PRESSED:
+				case CellState::FLAG:
+					if (btnType == SDL_BUTTON_RIGHT)
+					{
 						front[pressedRow][pressedCol] = CellState::QM_INIT;
-						break;
-					default:
-						front[pressedRow][pressedCol] = back[pressedRow][pressedCol];
-				}
-				pressedRow = -1;
-				pressedCol = -1;
+					}
+					break;
+				case CellState::QM_PRESSED:
+					if (btnType == SDL_BUTTON_LEFT)
+					{
+						front[pressedRow][pressedCol] = CellState::QM_INIT;
+					}
+					else if (btnType == SDL_BUTTON_RIGHT)
+					{
+						front[pressedRow][pressedCol] = CellState::INIT;
+					}
+					break;
+				case CellState::PRESSED:
+					if (btnType == SDL_BUTTON_LEFT)
+					{
+						switch (back[pressedRow][pressedCol])
+						{
+							case CellState::PRESSED:
+								openEmptyCells();
+								break;
+							case CellState::MINE_OK:
+								openAllCells();
+								break;
+							default:
+								front[pressedRow][pressedCol] = back[pressedRow][pressedCol];
+								break;
+						}
+					}
+					else if (btnType == SDL_BUTTON_RIGHT)
+					{
+						front[pressedRow][pressedCol] = CellState::FLAG;
+					}
+					break;
+				default:
+					break;
 			}
+			pressedRow = INF;
+			pressedCol = INF;
 		}
 	}
 }
@@ -136,6 +172,8 @@ void GameField::reset()
 		}
 	}
 	generateField();
+	pressedRow = INF;
+	pressedCol = INF;
 }
 
 bool GameField::insideField(int x, int y)
@@ -212,9 +250,77 @@ void GameField::generateField()
 				back[r][c] = CellState::MINES_8;
 				break;
 			default:
-					std::cout << "WARN: No mapping for cell value: " << cells[i]
-						<< ". Empty cell will be used instead." << std::endl;
-					back[r][c] = CellState::PRESSED;
+				std::cout << "WARN: No mapping for cell value: " << cells[i]
+					<< ". Empty cell will be used instead." << std::endl;
+				back[r][c] = CellState::PRESSED;
 		}
 	}
+}
+
+void GameField::openEmptyCells()
+{
+	static const int m = 8;
+	static int rShifts[m] = {-1, -1, 0, 1, 1, 1, 0, -1};
+	static int cShifts[m] = {0, 1, 1, 1, 0, -1, -1, -1};
+	bool seen[rs][cs];
+	for (size_t r = 0; r < rs; r++)
+	{
+		std::fill_n(seen[r], cs, false);
+	}
+	std::deque<std::pair<int, int> > queue;
+	queue.push_back({pressedRow, pressedCol});
+	seen[pressedRow][pressedCol] = true;
+
+	while (!queue.empty())
+	{
+		std::pair<int, int> cur = queue.front();
+		queue.pop_front();
+		front[cur.first][cur.second] = back[cur.first][cur.second];
+
+		for (int k = 0; k < m; k++)
+		{
+			int nextr = rShifts[k] + cur.first;
+			int nextc = cShifts[k] + cur.second;
+
+			if (nextr >= 0 && static_cast<size_t>(nextr) < rs
+					&& nextc >= 0 && static_cast<size_t>(nextc) < cs
+					&& !seen[nextr][nextc]
+					&& back[nextr][nextc] != CellState::MINE_OK
+					&& back[cur.first][cur.second] == CellState::PRESSED)
+			{
+				seen[nextr][nextc] = true;
+				queue.push_back({nextr, nextc});
+			}
+		}
+	}
+}
+
+void GameField::openAllCells()
+{
+	for (size_t r = 0; r < rs; r++)
+	{
+		for (size_t c = 0; c < cs; c++)
+		{
+			if (r == pressedRow && c == pressedCol)
+			{
+				front[pressedRow][pressedCol] = CellState::MINE_LOSE;
+			}
+			else if (front[r][c] == CellState::FLAG)
+			{
+				if (back[r][c] != CellState::MINE_OK)
+				{
+					front[r][c] = CellState::MINE_WRONG;
+				}
+			}
+			else
+			{
+				front[r][c] = back[r][c];
+			}
+		}
+	}
+}
+
+bool GameField::gameOver()
+{
+	return false;
 }
