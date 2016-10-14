@@ -83,9 +83,9 @@ void GameField::render(Texture& texture, SDL_Renderer* const renderer)
 	}
 }
 
-void GameField::handleEvent(SDL_Event* event)
+void GameField::handleEvent(SDL_Event* event, SmileBar* smileBar)
 {
-	if (gameState != GameState::IN_PROGRESS)
+	if (gameState != GameState::IN_PROGRESS && gameState != GameState::INIT)
 	{
 		return;
 	}
@@ -95,11 +95,17 @@ void GameField::handleEvent(SDL_Event* event)
 	const SDL_Rect* clip = Clip::clip(static_cast<const int>(CellState::INIT));
 	size_t r = (y - 30) / clip->h;
 	size_t c = x / clip->w;
+	auto btnType = (event->button).button;
 
 	if (event->type == SDL_MOUSEBUTTONDOWN)
 	{
 		if (insideField(x, y))
 		{
+			if (gameState == GameState::INIT)
+			{
+				gameState = GameState::IN_PROGRESS;
+				smileBar->startTimer();
+			}
 			pressedRow = r;
 			pressedCol = c;
 
@@ -107,6 +113,10 @@ void GameField::handleEvent(SDL_Event* event)
 			{
 				case CellState::INIT:
 					front[r][c] = CellState::PRESSED;
+					if (btnType == SDL_BUTTON_LEFT)
+					{
+						smileBar->smileState = SmileState::WONDER;
+					}
 					break;
 				case CellState::QM_INIT:
 					front[r][c] = CellState::QM_PRESSED;
@@ -120,14 +130,13 @@ void GameField::handleEvent(SDL_Event* event)
 	{
 		if (pressedRow < INF && pressedCol < INF)
 		{
-			auto btnType = (event->button).button;
-
 			switch (front[pressedRow][pressedCol])
 			{
 				case CellState::FLAG:
 					if (btnType == SDL_BUTTON_RIGHT)
 					{
 						front[pressedRow][pressedCol] = CellState::QM_INIT;
+						smileBar->incrMines();
 					}
 					break;
 				case CellState::QM_PRESSED:
@@ -146,12 +155,15 @@ void GameField::handleEvent(SDL_Event* event)
 						switch (back[pressedRow][pressedCol])
 						{
 							case CellState::PRESSED:
+								smileBar->smileState = SmileState::INIT;
 								openEmptyCells();
 								break;
 							case CellState::MINE_OK:
+								smileBar->smileState = SmileState::LOSE;
 								openAllCells();
 								break;
 							default:
+								smileBar->smileState = SmileState::INIT;
 								front[pressedRow][pressedCol] = back[pressedRow][pressedCol];
 								break;
 						}
@@ -159,6 +171,7 @@ void GameField::handleEvent(SDL_Event* event)
 					else if (btnType == SDL_BUTTON_RIGHT)
 					{
 						front[pressedRow][pressedCol] = CellState::FLAG;
+						smileBar->decrMines();
 					}
 					break;
 				default:
@@ -169,6 +182,14 @@ void GameField::handleEvent(SDL_Event* event)
 		}
 	}
 	checkWin();
+	if (gameState == GameState::WIN)
+	{
+		smileBar->smileState = SmileState::WIN;
+	}
+	if (gameState == GameState::WIN || gameState == GameState::LOSE)
+	{
+		smileBar->stopTimer();
+	}
 }
 
 void GameField::reset()
@@ -296,7 +317,8 @@ void GameField::openEmptyCells()
 					&& nextc >= 0 && static_cast<size_t>(nextc) < cs
 					&& !seen[nextr][nextc]
 					&& back[nextr][nextc] != CellState::MINE_OK
-					&& back[cur.first][cur.second] == CellState::PRESSED)
+					&& back[cur.first][cur.second] == CellState::PRESSED
+					&& front[nextr][nextc] == CellState::INIT)
 			{
 				seen[nextr][nextc] = true;
 				queue.push_back({nextr, nextc});

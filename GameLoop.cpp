@@ -80,7 +80,7 @@ void GameLoop::onEvent(SDL_Event* event)
 	}
 	else
 	{
-		gameField->handleEvent(event);
-		smileBar->handleEvent(event);
+		gameField->handleEvent(event, smileBar);
+		smileBar->handleEvent(event, gameField);
 	}
 }

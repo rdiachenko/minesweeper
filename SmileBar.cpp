@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include "SmileBar.h"
 #include "Config.h"
 
@@ -16,22 +17,29 @@ static const int DIGITS[10] =
 	Clip::DIGIT_9
 };
 
-enum class SmileState
-{
-	INIT = Clip::SMILE_INIT,
-	PRESSED = Clip::SMILE_PRESSED,
-	WONDER = Clip::SMILE_O,
-	WIN = Clip::SMILE_WIN,
-	LOSE = Clip::SMILE_LOSE
-};
-
-SmileBar::SmileBar(int mines) : timeSecs(0), minesInit(mines), minesLeft(mines), smileState(SmileState::INIT)
+SmileBar::SmileBar(int mines) : startTimeSecs(0), curTimeSecs(0), minesInit(mines), minesLeft(mines), smileState(SmileState::INIT)
 {
 }
 
-void SmileBar::incrTime()
+size_t SmileBar::now()
 {
-	timeSecs++;
+	return std::chrono::duration_cast<std::chrono::seconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count();
+}
+
+void SmileBar::startTimer()
+{
+	startTimeSecs = now();
+}
+
+void SmileBar::stopTimer()
+{
+	curTimeSecs = now() - startTimeSecs;
+}
+
+void SmileBar::resetTimer()
+{
 }
 
 void SmileBar::incrMines()
@@ -51,7 +59,7 @@ void SmileBar::render(Texture& texture, SDL_Renderer* const renderer)
 	renderTimeCount(texture, renderer);
 }
 
-void SmileBar::handleEvent(SDL_Event* event)
+void SmileBar::handleEvent(SDL_Event* event, GameField* gameField)
 {
 	if (event->type == SDL_MOUSEBUTTONDOWN)
 	{
@@ -71,6 +79,7 @@ void SmileBar::handleEvent(SDL_Event* event)
 			{
 				smileState = SmileState::INIT;
 				reset();
+				gameField->reset();
 			}
 		}
 	}
@@ -78,14 +87,15 @@ void SmileBar::handleEvent(SDL_Event* event)
 
 void SmileBar::renderTimeCount(Texture& texture, SDL_Renderer* const renderer)
 {
-	size_t digitCount = std::max(toDigits(timeSecs).size(), 3UL);
+	size_t digitCount = std::max(toDigits(curTimeSecs).size(), 3UL);
 	int xInit = SCREEN_WIDTH - 4 - digitCount * Clip::clip(DIGITS[0])->w;
-	renderCount(xInit, 3, timeSecs, texture, renderer);
+	renderCount(xInit, 3, curTimeSecs, texture, renderer);
 }
 
 void SmileBar::renderMineCount(Texture& texture, SDL_Renderer* const renderer)
 {
-	renderCount(4, 3, minesLeft, texture, renderer);
+	int mines = minesLeft > minesInit ? minesInit : minesLeft < 0 ? 0 : minesLeft;
+	renderCount(4, 3, mines, texture, renderer);
 }
 
 void SmileBar::renderCount(int xInit, int yInit, int count, Texture& texture, SDL_Renderer* const renderer)
@@ -112,7 +122,7 @@ void SmileBar::renderSmile(Texture& texture, SDL_Renderer* const renderer)
 
 void SmileBar::reset()
 {
-	timeSecs = 0;
+	curTimeSecs = 0;
 	minesLeft = minesInit;
 }
 
