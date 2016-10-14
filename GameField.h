@@ -5,6 +5,7 @@
 #include "Texture.h"
 
 enum class CellState : const int;
+enum class GameState;
 
 class GameField
 {
@@ -22,12 +23,13 @@ class GameField
 		CellState** back;
 		size_t pressedRow;
 		size_t pressedCol;
+		GameState gameState;
 		void reset();
 		bool insideField(int x, int y);
 		void generateField();
 		void openEmptyCells();
 		void openAllCells();
-		bool gameOver();
+		void checkWin();
 };
 
 #endif

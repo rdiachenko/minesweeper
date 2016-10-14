@@ -29,8 +29,16 @@ enum class CellState
 	MINES_8 = Clip::CELL_8
 };
 
+enum class GameState
+{
+	INIT,
+	IN_PROGRESS,
+	WIN,
+	LOSE
+};
+
 GameField::GameField(size_t rows, size_t cols, size_t mines)
-	: rs(rows), cs(cols), ms(mines), front(nullptr), back(nullptr), pressedRow(INF), pressedCol(INF)
+	: rs(rows), cs(cols), ms(mines), front(nullptr), back(nullptr), pressedRow(INF), pressedCol(INF), gameState(GameState::INIT)
 {
 	front = new CellState*[rs];
 	back = new CellState*[rs];
@@ -77,7 +85,7 @@ void GameField::render(Texture& texture, SDL_Renderer* const renderer)
 
 void GameField::handleEvent(SDL_Event* event)
 {
-	if (gameOver())
+	if (gameState != GameState::IN_PROGRESS)
 	{
 		return;
 	}
@@ -160,6 +168,7 @@ void GameField::handleEvent(SDL_Event* event)
 			pressedCol = INF;
 		}
 	}
+	checkWin();
 }
 
 void GameField::reset()
@@ -174,6 +183,7 @@ void GameField::reset()
 	generateField();
 	pressedRow = INF;
 	pressedCol = INF;
+	gameState = GameState::INIT;
 }
 
 bool GameField::insideField(int x, int y)
@@ -297,6 +307,8 @@ void GameField::openEmptyCells()
 
 void GameField::openAllCells()
 {
+	gameState = GameState::LOSE;
+
 	for (size_t r = 0; r < rs; r++)
 	{
 		for (size_t c = 0; c < cs; c++)
@@ -320,7 +332,23 @@ void GameField::openAllCells()
 	}
 }
 
-bool GameField::gameOver()
+void GameField::checkWin()
 {
-	return false;
+	bool win = true;
+
+	for (size_t r = 0; win && r < rs; r++)
+	{
+		for (size_t c = 0; win && c < cs; c++)
+		{
+			if ((front[r][c] != CellState::FLAG || back[r][c] != CellState::MINE_OK)
+					&& front[r][c] != back[r][c])
+			{
+				win = false;
+			}
+		}
+	}
+	if (win)
+	{
+		gameState = GameState::WIN;
+	}
 }
