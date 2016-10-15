@@ -29,6 +29,7 @@ class SmileBar
 		void handleEvent(SDL_Event* event, GameField* gameField);
 
 	private:
+		bool timerRunning;
 		size_t startTimeSecs;
 		size_t curTimeSecs;
 		int minesInit;
@@ -37,7 +38,6 @@ class SmileBar
 		size_t now();
 		void startTimer();
 		void stopTimer();
-		void resetTimer();
 		void incrMines();
 		void decrMines();
 		void renderTimeCount(Texture& texture, SDL_Renderer* const renderer);

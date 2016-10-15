@@ -17,7 +17,7 @@ static const int DIGITS[10] =
 	Clip::DIGIT_9
 };
 
-SmileBar::SmileBar(int mines) : startTimeSecs(0), curTimeSecs(0), minesInit(mines), minesLeft(mines), smileState(SmileState::INIT)
+SmileBar::SmileBar(int mines) : timerRunning(false), startTimeSecs(0), curTimeSecs(0), minesInit(mines), minesLeft(mines), smileState(SmileState::INIT)
 {
 }
 
@@ -30,16 +30,13 @@ size_t SmileBar::now()
 
 void SmileBar::startTimer()
 {
+	timerRunning = true;
 	startTimeSecs = now();
 }
 
 void SmileBar::stopTimer()
 {
-	curTimeSecs = now() - startTimeSecs;
-}
-
-void SmileBar::resetTimer()
-{
+	timerRunning = false;
 }
 
 void SmileBar::incrMines()
@@ -87,6 +84,12 @@ void SmileBar::handleEvent(SDL_Event* event, GameField* gameField)
 
 void SmileBar::renderTimeCount(Texture& texture, SDL_Renderer* const renderer)
 {
+	if (timerRunning)
+	{
+		size_t nowTime = now();
+		curTimeSecs += nowTime - startTimeSecs;
+		startTimeSecs = nowTime;
+	}
 	size_t digitCount = std::max(toDigits(curTimeSecs).size(), 3UL);
 	int xInit = SCREEN_WIDTH - 4 - digitCount * Clip::clip(DIGITS[0])->w;
 	renderCount(xInit, 3, curTimeSecs, texture, renderer);
@@ -122,6 +125,7 @@ void SmileBar::renderSmile(Texture& texture, SDL_Renderer* const renderer)
 
 void SmileBar::reset()
 {
+	timerRunning = false;
 	curTimeSecs = 0;
 	minesLeft = minesInit;
 }
