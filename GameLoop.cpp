@@ -56,7 +56,7 @@ void GameLoop::run()
 {
 	running = true;
 	SDL_Event event;
-	Texture texture(renderer, "sprites/classic.png");
+	Texture texture(renderer, SPRITE_PATH);
 
 	while (running)
 	{

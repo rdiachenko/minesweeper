@@ -14,6 +14,7 @@ enum class CellState
 	INIT = Clip::CELL_INIT,
 	PRESSED = Clip::CELL_PRESSED,
 	FLAG = Clip::CELL_FLAG,
+	FLAG_PRESSED = Clip::CELL_FLAG_PRESSED,
 	QM_INIT = Clip::CELL_QM_INIT,
 	QM_PRESSED = Clip::CELL_QM_PRESSED,
 	MINE_OK = Clip::CELL_MINE_OK,
@@ -73,7 +74,7 @@ void GameField::render(Texture& texture, SDL_Renderer* const renderer)
 
 	for (size_t c = 0; c < cs; c++, x += xStep)
 	{
-		int y = 30;
+		int y = 4 + Clip::clip(static_cast<const int>(SmileState::INIT))->h;
 		for (size_t r = 0; r < rs; r++)
 		{
 			const SDL_Rect* clip = Clip::clip(static_cast<const int>(front[r][c]));
@@ -93,7 +94,7 @@ void GameField::handleEvent(SDL_Event* event, SmileBar* smileBar)
 	int y = (event->button).y;
 
 	const SDL_Rect* clip = Clip::clip(static_cast<const int>(CellState::INIT));
-	size_t r = (y - 30) / clip->h;
+	size_t r = (y - (4 + Clip::clip(static_cast<const int>(SmileState::INIT))->h)) / clip->h;
 	size_t c = x / clip->w;
 	auto btnType = (event->button).button;
 
@@ -118,6 +119,9 @@ void GameField::handleEvent(SDL_Event* event, SmileBar* smileBar)
 						smileBar->smileState = SmileState::WONDER;
 					}
 					break;
+				case CellState::FLAG:
+					front[r][c] = CellState::FLAG_PRESSED;
+					break;
 				case CellState::QM_INIT:
 					front[r][c] = CellState::QM_PRESSED;
 					break;
@@ -132,7 +136,11 @@ void GameField::handleEvent(SDL_Event* event, SmileBar* smileBar)
 		{
 			switch (front[pressedRow][pressedCol])
 			{
-				case CellState::FLAG:
+				case CellState::FLAG_PRESSED:
+					if (btnType == SDL_BUTTON_LEFT)
+					{
+						front[pressedRow][pressedCol] = CellState::FLAG;
+					}
 					if (btnType == SDL_BUTTON_RIGHT)
 					{
 						front[pressedRow][pressedCol] = CellState::QM_INIT;
@@ -209,7 +217,7 @@ void GameField::reset()
 
 bool GameField::insideField(int x, int y)
 {
-	return x >= 0 && x <= SCREEN_WIDTH && y >= 30 && y <= SCREEN_HEIGHT;
+	return x >= 0 && x <= SCREEN_WIDTH && y >= 4 + Clip::clip(static_cast<const int>(SmileState::INIT))->h && y <= SCREEN_HEIGHT;
 }
 
 void GameField::generateField()
