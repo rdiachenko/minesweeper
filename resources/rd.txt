@@ -1,0 +1,33 @@
+#x y w h
+0 0 20 42 #digit 0
+21 0 20 42 #digit 1
+42 0 20 42 #digit 2
+63 0 20 42 #digit 3
+84 0 20 42 #digit 4
+105 0 20 42 #digit 5
+126 0 20 42 #digit 6
+147 0 20 42 #digit 7
+168 0 20 42 #digit 8
+189 0 20 42 #digit 9
+0 44 43 44 #smile init
+45 44 43 44 #smile pressed
+90 44 43 44 #smile wonder
+135 44 43 44 #smile win
+180 44 43 44 #smile lose
+0 89 26 26 #cell init
+27 89 26 26 #cell pressed
+54 89 26 26 #cell flag
+81 89 26 26 #cell flag pressed
+108 89 26 26 #cell question mark
+135 89 26 26 #cell question mark pressed
+162 89 26 26 #mine
+189 89 26 26 #mine lose
+215 89 26 26 #mine wrong
+0 116 26 26 #cell 1
+27 116 26 26 #cell 2
+54 116 26 26 #cell 3
+81 116 26 26 #cell 4
+108 116 26 26 #cell 5
+135 116 26 26 #cell 6
+162 116 26 26 #cell 7
+189 116 26 26 #cell 8

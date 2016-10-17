@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <chrono>
 #include "SmileBar.h"
-#include "Config.h"
 
 static const int DIGITS[10] =
 {
@@ -17,7 +16,7 @@ static const int DIGITS[10] =
 	Clip::DIGIT_9
 };
 
-SmileBar::SmileBar(int mines) : timerRunning(false), startTimeSecs(0), curTimeSecs(0), minesInit(mines), minesLeft(mines), smileState(SmileState::INIT)
+SmileBar::SmileBar(Config* config) : cfg(config), timerRunning(false), startTimeSecs(0), curTimeSecs(0), minesInit(cfg->getMineCnt()), minesLeft(cfg->getMineCnt()), smileState(Clip::SMILE_INIT)
 {
 }
 
@@ -64,7 +63,7 @@ void SmileBar::handleEvent(SDL_Event* event, GameField* gameField)
 		{
 			if (insideSmile((event->button).x, (event->button).y))
 			{
-				smileState = SmileState::PRESSED;
+				smileState = Clip::SMILE_PRESSED;
 			}
 		}
 	}
@@ -72,9 +71,9 @@ void SmileBar::handleEvent(SDL_Event* event, GameField* gameField)
 	{
 		if ((event->button).button == SDL_BUTTON_LEFT)
 		{
-			if (smileState == SmileState::PRESSED)
+			if (smileState == Clip::SMILE_PRESSED)
 			{
-				smileState = SmileState::INIT;
+				smileState = Clip::SMILE_INIT;
 				reset();
 				gameField->reset();
 			}
@@ -91,7 +90,7 @@ void SmileBar::renderTimeCount(Texture& texture, SDL_Renderer* const renderer)
 		startTimeSecs = nowTime;
 	}
 	size_t digitCount = std::max(toDigits(curTimeSecs).size(), 3UL);
-	int xInit = SCREEN_WIDTH - 4 - digitCount * Clip::clip(DIGITS[0])->w;
+	int xInit = cfg->getWinWidth() - 4 - digitCount * cfg->getClip(DIGITS[0])->w;
 	renderCount(xInit, 3, curTimeSecs, texture, renderer);
 }
 
@@ -110,8 +109,8 @@ void SmileBar::renderCount(int xInit, int yInit, int count, Texture& texture, SD
 	for (size_t i = 0, j = 0; i < digitCount; i++)
 	{
 		const SDL_Rect* clip;
-		if ((digitCount - i) > digits.size()) clip = Clip::clip(DIGITS[0]);
-		else clip = Clip::clip(DIGITS[digits[j++]]);
+		if ((digitCount - i) > digits.size()) clip = cfg->getClip(DIGITS[0]);
+		else clip = cfg->getClip(DIGITS[digits[j++]]);
 		texture.render(x, yInit, clip, renderer);
 		x += clip->w;
 	}
@@ -119,8 +118,8 @@ void SmileBar::renderCount(int xInit, int yInit, int count, Texture& texture, SD
 
 void SmileBar::renderSmile(Texture& texture, SDL_Renderer* const renderer)
 {
-	const SDL_Rect* clip = Clip::clip(static_cast<const int>(smileState));
-	texture.render(SCREEN_WIDTH / 2 - clip->w / 2, 2, clip, renderer);
+	const SDL_Rect* clip = cfg->getClip(smileState);
+	texture.render(cfg->getWinWidth() / 2 - clip->w / 2, 2, clip, renderer);
 }
 
 void SmileBar::reset()
@@ -143,8 +142,8 @@ std::deque<int> SmileBar::toDigits(int val)
 
 bool SmileBar::insideSmile(int x, int y)
 {
-	const SDL_Rect* clip = Clip::clip(static_cast<const int>(SmileState::INIT));
-	int x0 = SCREEN_WIDTH / 2 - clip->w / 2;
+	const SDL_Rect* clip = cfg->getClip(Clip::SMILE_INIT);
+	int x0 = cfg->getWinWidth() / 2 - clip->w / 2;
 	int x1 = x0 + clip->w;
 	int y0 = 2;
 	int y1 = y0 + clip->h;

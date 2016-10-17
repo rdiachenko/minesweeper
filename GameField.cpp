@@ -4,31 +4,8 @@
 #include <chrono>
 #include <deque>
 #include "GameField.h"
-#include "Clip.h"
-#include "Config.h"
 
 static const size_t INF = 123456789;
-
-enum class CellState
-{
-	INIT = Clip::CELL_INIT,
-	PRESSED = Clip::CELL_PRESSED,
-	FLAG = Clip::CELL_FLAG,
-	FLAG_PRESSED = Clip::CELL_FLAG_PRESSED,
-	QM_INIT = Clip::CELL_QM_INIT,
-	QM_PRESSED = Clip::CELL_QM_PRESSED,
-	MINE_OK = Clip::CELL_MINE_OK,
-	MINE_LOSE = Clip::CELL_MINE_LOSE,
-	MINE_WRONG = Clip::CELL_MINE_WRONG,
-	MINES_1 = Clip::CELL_1,
-	MINES_2 = Clip::CELL_2,
-	MINES_3 = Clip::CELL_3,
-	MINES_4 = Clip::CELL_4,
-	MINES_5 = Clip::CELL_5,
-	MINES_6 = Clip::CELL_6,
-	MINES_7 = Clip::CELL_7,
-	MINES_8 = Clip::CELL_8
-};
 
 enum class GameState
 {
@@ -38,19 +15,19 @@ enum class GameState
 	LOSE
 };
 
-GameField::GameField(size_t rows, size_t cols, size_t mines)
-	: rs(rows), cs(cols), ms(mines), front(nullptr), back(nullptr), pressedRow(INF), pressedCol(INF), gameState(GameState::INIT)
+GameField::GameField(Config* config)
+	: cfg(config), rs(cfg->getFieldRowCnt()), cs(cfg->getFieldColCnt()), ms(cfg->getMineCnt()), front(nullptr), back(nullptr), pressedRow(INF), pressedCol(INF), gameState(GameState::INIT)
 {
-	front = new CellState*[rs];
-	back = new CellState*[rs];
+	front = new size_t*[rs];
+	back = new size_t*[rs];
 	for (size_t r = 0; r < rs; r++)
 	{
-		front[r] = new CellState[cs];
-		back[r] = new CellState[cs];
+		front[r] = new size_t[cs];
+		back[r] = new size_t[cs];
 		for (size_t c = 0; c < cs; c++)
 		{
-			front[r][c] = CellState::INIT;
-			back[r][c] = CellState::PRESSED;
+			front[r][c] = Clip::CELL_INIT;
+			back[r][c] = Clip::CELL_PRESSED;
 		}
 	}
 	generateField();
@@ -70,14 +47,14 @@ GameField::~GameField()
 void GameField::render(Texture& texture, SDL_Renderer* const renderer)
 {
 	int x = 0;
-	int xStep = Clip::clip(static_cast<const int>(CellState::INIT))->w;
+	int xStep = cfg->getClip(Clip::CELL_INIT)->w;
 
 	for (size_t c = 0; c < cs; c++, x += xStep)
 	{
-		int y = 4 + Clip::clip(static_cast<const int>(SmileState::INIT))->h;
+		int y = 2 + cfg->getClip(Clip::SMILE_INIT)->h + 2; // top bar height
 		for (size_t r = 0; r < rs; r++)
 		{
-			const SDL_Rect* clip = Clip::clip(static_cast<const int>(front[r][c]));
+			const SDL_Rect* clip = cfg->getClip(front[r][c]);
 			texture.render(x, y, clip, renderer);
 			y += clip->h;
 		}
@@ -93,8 +70,8 @@ void GameField::handleEvent(SDL_Event* event, SmileBar* smileBar)
 	int x = (event->button).x;
 	int y = (event->button).y;
 
-	const SDL_Rect* clip = Clip::clip(static_cast<const int>(CellState::INIT));
-	size_t r = (y - (4 + Clip::clip(static_cast<const int>(SmileState::INIT))->h)) / clip->h;
+	const SDL_Rect* clip = cfg->getClip(Clip::CELL_INIT);
+	size_t r = (y - (2 + cfg->getClip(Clip::SMILE_INIT)->h + 2)) / clip->h;
 	size_t c = x / clip->w;
 	auto btnType = (event->button).button;
 
@@ -112,18 +89,18 @@ void GameField::handleEvent(SDL_Event* event, SmileBar* smileBar)
 
 			switch (front[r][c])
 			{
-				case CellState::INIT:
-					front[r][c] = CellState::PRESSED;
+				case Clip::CELL_INIT:
+					front[r][c] = Clip::CELL_PRESSED;
 					if (btnType == SDL_BUTTON_LEFT)
 					{
-						smileBar->smileState = SmileState::WONDER;
+						smileBar->smileState = Clip::SMILE_WONDER;
 					}
 					break;
-				case CellState::FLAG:
-					front[r][c] = CellState::FLAG_PRESSED;
+				case Clip::CELL_FLAG:
+					front[r][c] = Clip::CELL_FLAG_PRESSED;
 					break;
-				case CellState::QM_INIT:
-					front[r][c] = CellState::QM_PRESSED;
+				case Clip::CELL_QM:
+					front[r][c] = Clip::CELL_QM_PRESSED;
 					break;
 				default:
 					break;
@@ -136,49 +113,49 @@ void GameField::handleEvent(SDL_Event* event, SmileBar* smileBar)
 		{
 			switch (front[pressedRow][pressedCol])
 			{
-				case CellState::FLAG_PRESSED:
+				case Clip::CELL_FLAG_PRESSED:
 					if (btnType == SDL_BUTTON_LEFT)
 					{
-						front[pressedRow][pressedCol] = CellState::FLAG;
+						front[pressedRow][pressedCol] = Clip::CELL_FLAG;
 					}
 					if (btnType == SDL_BUTTON_RIGHT)
 					{
-						front[pressedRow][pressedCol] = CellState::QM_INIT;
+						front[pressedRow][pressedCol] = Clip::CELL_QM;
 						smileBar->incrMines();
 					}
 					break;
-				case CellState::QM_PRESSED:
+				case Clip::CELL_QM_PRESSED:
 					if (btnType == SDL_BUTTON_LEFT)
 					{
-						front[pressedRow][pressedCol] = CellState::QM_INIT;
+						front[pressedRow][pressedCol] = Clip::CELL_QM;
 					}
 					else if (btnType == SDL_BUTTON_RIGHT)
 					{
-						front[pressedRow][pressedCol] = CellState::INIT;
+						front[pressedRow][pressedCol] = Clip::CELL_INIT;
 					}
 					break;
-				case CellState::PRESSED:
+				case Clip::CELL_PRESSED:
 					if (btnType == SDL_BUTTON_LEFT)
 					{
 						switch (back[pressedRow][pressedCol])
 						{
-							case CellState::PRESSED:
-								smileBar->smileState = SmileState::INIT;
+							case Clip::CELL_PRESSED:
+								smileBar->smileState = Clip::SMILE_INIT;
 								openEmptyCells();
 								break;
-							case CellState::MINE_OK:
-								smileBar->smileState = SmileState::LOSE;
+							case Clip::CELL_MINE:
+								smileBar->smileState = Clip::SMILE_LOSE;
 								openAllCells();
 								break;
 							default:
-								smileBar->smileState = SmileState::INIT;
+								smileBar->smileState = Clip::SMILE_INIT;
 								front[pressedRow][pressedCol] = back[pressedRow][pressedCol];
 								break;
 						}
 					}
 					else if (btnType == SDL_BUTTON_RIGHT)
 					{
-						front[pressedRow][pressedCol] = CellState::FLAG;
+						front[pressedRow][pressedCol] = Clip::CELL_FLAG;
 						smileBar->decrMines();
 					}
 					break;
@@ -192,7 +169,7 @@ void GameField::handleEvent(SDL_Event* event, SmileBar* smileBar)
 	checkWin();
 	if (gameState == GameState::WIN)
 	{
-		smileBar->smileState = SmileState::WIN;
+		smileBar->smileState = Clip::SMILE_WIN;
 	}
 	if (gameState == GameState::WIN || gameState == GameState::LOSE)
 	{
@@ -206,7 +183,7 @@ void GameField::reset()
 	{
 		for (size_t c = 0; c < cs; c++)
 		{
-			front[r][c] = CellState::INIT;
+			front[r][c] = Clip::CELL_INIT;
 		}
 	}
 	generateField();
@@ -217,7 +194,8 @@ void GameField::reset()
 
 bool GameField::insideField(int x, int y)
 {
-	return x >= 0 && x <= SCREEN_WIDTH && y >= 4 + Clip::clip(static_cast<const int>(SmileState::INIT))->h && y <= SCREEN_HEIGHT;
+	return x >= 0 && x <= static_cast<int>(cfg->getWinWidth())
+		&& y >= 2 + cfg->getClip(Clip::SMILE_INIT)->h + 2 && y <= static_cast<int>(cfg->getWinHeight());
 }
 
 void GameField::generateField()
@@ -259,39 +237,39 @@ void GameField::generateField()
 		switch (cells[i])
 		{
 			case -1:
-				back[r][c] = CellState::MINE_OK;
+				back[r][c] = Clip::CELL_MINE;
 				break;
 			case 0:
-				back[r][c] = CellState::PRESSED;
+				back[r][c] = Clip::CELL_PRESSED;
 				break;
 			case 1:
-				back[r][c] = CellState::MINES_1;
+				back[r][c] = Clip::CELL_1;
 				break;
 			case 2:
-				back[r][c] = CellState::MINES_2;
+				back[r][c] = Clip::CELL_2;
 				break;
 			case 3:
-				back[r][c] = CellState::MINES_3;
+				back[r][c] = Clip::CELL_3;
 				break;
 			case 4:
-				back[r][c] = CellState::MINES_4;
+				back[r][c] = Clip::CELL_4;
 				break;
 			case 5:
-				back[r][c] = CellState::MINES_5;
+				back[r][c] = Clip::CELL_5;
 				break;
 			case 6:
-				back[r][c] = CellState::MINES_6;
+				back[r][c] = Clip::CELL_6;
 				break;
 			case 7:
-				back[r][c] = CellState::MINES_7;
+				back[r][c] = Clip::CELL_7;
 				break;
 			case 8:
-				back[r][c] = CellState::MINES_8;
+				back[r][c] = Clip::CELL_8;
 				break;
 			default:
 				std::cout << "WARN: No mapping for cell value: " << cells[i]
 					<< ". Empty cell will be used instead." << std::endl;
-				back[r][c] = CellState::PRESSED;
+				back[r][c] = Clip::CELL_PRESSED;
 		}
 	}
 }
@@ -324,9 +302,9 @@ void GameField::openEmptyCells()
 			if (nextr >= 0 && static_cast<size_t>(nextr) < rs
 					&& nextc >= 0 && static_cast<size_t>(nextc) < cs
 					&& !seen[nextr][nextc]
-					&& back[nextr][nextc] != CellState::MINE_OK
-					&& back[cur.first][cur.second] == CellState::PRESSED
-					&& front[nextr][nextc] == CellState::INIT)
+					&& back[nextr][nextc] != Clip::CELL_MINE
+					&& back[cur.first][cur.second] == Clip::CELL_PRESSED
+					&& front[nextr][nextc] == Clip::CELL_INIT)
 			{
 				seen[nextr][nextc] = true;
 				queue.push_back({nextr, nextc});
@@ -345,13 +323,13 @@ void GameField::openAllCells()
 		{
 			if (r == pressedRow && c == pressedCol)
 			{
-				front[pressedRow][pressedCol] = CellState::MINE_LOSE;
+				front[pressedRow][pressedCol] = Clip::CELL_MINE_LOSE;
 			}
-			else if (front[r][c] == CellState::FLAG)
+			else if (front[r][c] == Clip::CELL_FLAG)
 			{
-				if (back[r][c] != CellState::MINE_OK)
+				if (back[r][c] != Clip::CELL_MINE)
 				{
-					front[r][c] = CellState::MINE_WRONG;
+					front[r][c] = Clip::CELL_MINE_WRONG;
 				}
 			}
 			else
@@ -370,7 +348,7 @@ void GameField::checkWin()
 	{
 		for (size_t c = 0; win && c < cs; c++)
 		{
-			if ((front[r][c] != CellState::FLAG || back[r][c] != CellState::MINE_OK)
+			if ((front[r][c] != Clip::CELL_FLAG || back[r][c] != Clip::CELL_MINE)
 					&& front[r][c] != back[r][c])
 			{
 				win = false;

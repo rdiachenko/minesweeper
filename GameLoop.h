@@ -8,11 +8,12 @@
 class GameLoop
 {
 	public:
-		GameLoop();
+		GameLoop(Config* config);
 		~GameLoop();
 		void run();
 
 	private:
+		Config* cfg;
 		SDL_Window* window;
 		SDL_Renderer* renderer;
 		SmileBar* smileBar;

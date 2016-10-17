@@ -3,7 +3,7 @@
 #include "Config.h"
 #include "Texture.h"
 
-GameLoop::GameLoop() : window(nullptr), renderer(nullptr), smileBar(nullptr), gameField(nullptr), running(false)
+GameLoop::GameLoop(Config* config) : cfg(config), window(nullptr), renderer(nullptr), smileBar(nullptr), gameField(nullptr), running(false)
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -11,7 +11,10 @@ GameLoop::GameLoop() : window(nullptr), renderer(nullptr), smileBar(nullptr), ga
 	}
 	else
 	{
-		window = SDL_CreateWindow("Minesweeper", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+		window = SDL_CreateWindow("Minesweeper",
+				SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+				cfg->getWinWidth(), cfg->getWinHeight(),
+				SDL_WINDOW_SHOWN);
 
 		if (window == nullptr)
 		{
@@ -27,10 +30,14 @@ GameLoop::GameLoop() : window(nullptr), renderer(nullptr), smileBar(nullptr), ga
 			}
 			else
 			{
-				SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, BACKGROUND_COLOR_OPAQUE);
+				SDL_SetRenderDrawColor(renderer,
+						Config::BACKGROUND_COLOR_R,
+						Config::BACKGROUND_COLOR_G,
+						Config::BACKGROUND_COLOR_B,
+						Config::BACKGROUND_COLOR_OPAQUE);
 				SDL_RenderPresent(renderer);
-				smileBar = new SmileBar(99);
-				gameField = new GameField(16, 30, 99);
+				smileBar = new SmileBar(cfg);
+				gameField = new GameField(cfg);
 			}
 		}
 	}
@@ -56,7 +63,7 @@ void GameLoop::run()
 {
 	running = true;
 	SDL_Event event;
-	Texture texture(renderer, SPRITE_PATH);
+	Texture texture(renderer, cfg->getSpritePath());
 
 	while (running)
 	{
@@ -64,7 +71,11 @@ void GameLoop::run()
 		{
 			onEvent(&event);
 		}
-		SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, BACKGROUND_COLOR_OPAQUE);
+		SDL_SetRenderDrawColor(renderer,
+				Config::BACKGROUND_COLOR_R,
+				Config::BACKGROUND_COLOR_G,
+				Config::BACKGROUND_COLOR_B,
+				Config::BACKGROUND_COLOR_OPAQUE);
 		SDL_RenderClear(renderer);
 		smileBar->render(texture, renderer);
 		gameField->render(texture, renderer);
