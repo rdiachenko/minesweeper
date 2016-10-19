@@ -1,2 +1,4 @@
 *.swp
 minesweeper
+release/
+build/
