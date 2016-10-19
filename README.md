@@ -5,12 +5,12 @@ Light version of [Microsoft Minesweeper](https://en.wikipedia.org/wiki/Microsoft
 * SDL2
 * SDL2_image
 ```
-# E.g.: for Fedora 24
+# E.g.: installation for Fedora 24
 
 $ sudo dnf install SDL2 SDL2-devel SDL2_image SDL2_image-devel
 ```
 
-## Build and installation
+## Build and install
 ```
 minesweeper]$ mkdir build && cd build
 minesweeper]$ cmake ../
@@ -73,7 +73,7 @@ release]$ ./minesweeper resources/rd.conf
 ```
 ![](https://raw.githubusercontent.com/rdiachenko/minesweeper/master/screenshots/rd-in-progress.png)
 
-![](https://raw.githubusercontent.com/rdiachenko/minesweeper/master/screenshots/rd-in-lose.png)
+![](https://raw.githubusercontent.com/rdiachenko/minesweeper/master/screenshots/rd-lose.png)
 
 ```
 # custom configuration
