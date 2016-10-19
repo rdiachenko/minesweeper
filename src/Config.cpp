@@ -3,6 +3,8 @@
 #include <cctype>
 #include "Config.h"
 
+static const size_t LIMIT = 1000;
+
 Config::Config(std::string path)
 {
 	loadConfig(path);
@@ -96,8 +98,23 @@ void Config::loadConfig(std::string path)
 				std::cout << "WARN: unknown property: " << key << std::endl;
 			}
 		}
-		winHeight = 2 + getClip(Clip::SMILE_INIT)->h + 2 + fieldRowCnt * getClip(Clip::CELL_INIT)->h;
-		winWidth = fieldColCnt * getClip(Clip::CELL_INIT)->w;
+		if (fieldRowCnt > 0 && fieldRowCnt < LIMIT && fieldColCnt > 0 && fieldColCnt < LIMIT)
+		{
+			size_t dim = fieldRowCnt * fieldColCnt;
+
+			if (mineCnt >= dim)
+			{
+				size_t defaultMineCnt = dim / 2;
+				std::cout << "WARN: too many mines: " << mineCnt << ". Default value will be used: " << defaultMineCnt << std::endl;
+				mineCnt = defaultMineCnt;
+			}
+			winHeight = 2 + getClip(Clip::SMILE_INIT)->h + 2 + fieldRowCnt * getClip(Clip::CELL_INIT)->h;
+			winWidth = fieldColCnt * getClip(Clip::CELL_INIT)->w;
+		}
+		else
+		{
+			std::cerr << "Unsupported rows/columns count: rows=" << fieldRowCnt << ", columns=" << fieldColCnt << ". Max value for rows=" << LIMIT << ", columns=" << LIMIT << std::endl;
+		}
 	}
 	else
 	{
