@@ -1,6 +1,14 @@
 # minesweeper
 Light version of [Microsoft Minesweeper](https://en.wikipedia.org/wiki/Microsoft_Minesweeper) for Linux
 
+1. [Required dependencies](https://github.com/rdiachenko/minesweeper#required-dependencies)
+2. [Build and install](https://github.com/rdiachenko/minesweeper#build-and-install)
+3. [Launch](https://github.com/rdiachenko/minesweeper#launch)
+4. [Launch with default configuration](https://github.com/rdiachenko/minesweeper#launch-with-default-configuration)
+5. [Launch with custom configuration](https://github.com/rdiachenko/minesweeper#launch-with-custom-configuration)
+  1. [Classic style](https://github.com/rdiachenko/minesweeper#classic-style)
+  2. [RD style](https://github.com/rdiachenko/minesweeper#rd-style)
+
 ## Required dependencies
 * SDL2
 * SDL2_image
