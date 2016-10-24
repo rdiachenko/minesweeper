@@ -35,7 +35,8 @@ class GameField
 		void generateField();
 		void openEmptyCells();
 		void openAllCells();
-		void checkWin();
+		void openAllFlags();
+		bool isWin();
 };
 
 #endif

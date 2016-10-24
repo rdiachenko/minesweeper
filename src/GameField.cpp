@@ -166,10 +166,11 @@ void GameField::handleEvent(SDL_Event* event, SmileBar* smileBar)
 			pressedCol = INF;
 		}
 	}
-	checkWin();
-	if (gameState == GameState::WIN)
+	if (isWin())
 	{
+		gameState = GameState::WIN;
 		smileBar->smileState = Clip::SMILE_WIN;
+		openAllFlags();
 	}
 	if (gameState == GameState::WIN || gameState == GameState::LOSE)
 	{
@@ -340,23 +341,34 @@ void GameField::openAllCells()
 	}
 }
 
-void GameField::checkWin()
+void GameField::openAllFlags()
 {
+	for (size_t r = 0; r < rs; r++)
+	{
+		for (size_t c = 0; c < cs; c++)
+		{
+			if (back[r][c] == Clip::CELL_MINE)
+			{
+				front[r][c] = Clip::CELL_FLAG;
+			}
+		}
+	}
+}
+
+bool GameField::isWin()
+{
+	if (gameState == GameState::LOSE)
+	{
+		return false;
+	}
 	bool win = true;
 
 	for (size_t r = 0; win && r < rs; r++)
 	{
 		for (size_t c = 0; win && c < cs; c++)
 		{
-			if ((front[r][c] != Clip::CELL_FLAG || back[r][c] != Clip::CELL_MINE)
-					&& front[r][c] != back[r][c])
-			{
-				win = false;
-			}
+			win &= back[r][c] == Clip::CELL_MINE || front[r][c] == back[r][c];
 		}
 	}
-	if (win)
-	{
-		gameState = GameState::WIN;
-	}
+	return win;
 }
