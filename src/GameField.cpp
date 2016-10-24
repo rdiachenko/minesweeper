@@ -87,22 +87,24 @@ void GameField::handleEvent(SDL_Event* event, SmileBar* smileBar)
 			pressedRow = r;
 			pressedCol = c;
 
-			switch (front[r][c])
+			switch (front[pressedRow][pressedCol])
 			{
 				case Clip::CELL_INIT:
-					front[r][c] = Clip::CELL_PRESSED;
+					front[pressedRow][pressedCol] = Clip::CELL_PRESSED;
 					if (btnType == SDL_BUTTON_LEFT)
 					{
 						smileBar->smileState = Clip::SMILE_WONDER;
 					}
 					break;
 				case Clip::CELL_FLAG:
-					front[r][c] = Clip::CELL_FLAG_PRESSED;
+					front[pressedRow][pressedCol] = Clip::CELL_FLAG_PRESSED;
 					break;
 				case Clip::CELL_QM:
-					front[r][c] = Clip::CELL_QM_PRESSED;
+					front[pressedRow][pressedCol] = Clip::CELL_QM_PRESSED;
 					break;
 				default:
+					pressedRow = INF;
+					pressedCol = INF;
 					break;
 			}
 		}
