@@ -1,5 +1,5 @@
 # minesweeper
-Light version of [Microsoft Minesweeper](https://en.wikipedia.org/wiki/Microsoft_Minesweeper) for Linux
+Light version of [Microsoft Minesweeper](https://en.wikipedia.org/wiki/Microsoft_Minesweeper) for Linux. Some interesting implementation moments are described [here](http://rusya7.blogspot.co.uk/2016/10/minesweeper-for-linux-just-for-fun.html).
 
 1. [Required dependencies](https://github.com/rdiachenko/minesweeper#required-dependencies)
 2. [Build and install](https://github.com/rdiachenko/minesweeper#build-and-install)
