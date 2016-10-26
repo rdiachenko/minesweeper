@@ -130,10 +130,10 @@ void Config::loadClips(std::string path)
 	{
 		std::string line;
 		size_t clipCnt = 0;
+		const size_t n = 4;
 
 		while (getline(in, line) && !line.empty())
 		{
-			size_t n = 4;
 			std::string rect[n];
 			size_t rectIndex = 0;
 			size_t index = 0;
