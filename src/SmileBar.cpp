@@ -137,7 +137,7 @@ std::deque<int> SmileBar::toDigits(int val)
 		reversedVal.push_front(val % 10);
 		val /= 10;
 	}
-	return std::move(reversedVal);
+	return reversedVal;
 }
 
 bool SmileBar::insideSmile(int x, int y)
