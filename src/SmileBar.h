@@ -46,10 +46,6 @@ class SmileBar
 		void reset();
 		std::deque<int> toDigits(int val) const;
 		bool insideSmile(int x, int y) const;
-		
-		// Validation helpers
-		void validateRenderer(SDL_Renderer* renderer) const;
-		void validateGameField(GameField* gameField) const;
 };
 
 #endif
