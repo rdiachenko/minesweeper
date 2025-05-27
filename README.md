@@ -13,8 +13,11 @@ Light version of [Microsoft Minesweeper](https://en.wikipedia.org/wiki/Microsoft
 * SDL2
 * SDL2_image
 ```
-# E.g.: installation for Ubuntu 2x.xx
-apt-get install libsdl2-dev libsdl2-image-dev -y
+# E.g.: installation for Fedora 24
+$ sudo dnf install SDL2 SDL2-devel SDL2_image SDL2_image-devel
+
+# or Ubuntu 2x.xx
+$ apt-get install libsdl2-dev libsdl2-image-dev -y
 ```
 
 ## Build and install
