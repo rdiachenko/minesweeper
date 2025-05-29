@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <deque>
+#include <memory>
 #include "Texture.h"
 #include "Config.h"
 #include "GameField.h"
@@ -14,31 +15,37 @@ class SmileBar
 	friend class GameField;
 
 	public:
-		SmileBar(Config* config);
+		explicit SmileBar(std::shared_ptr<Config> config);
 		~SmileBar() = default;
-		void render(Texture& texture, SDL_Renderer* const renderer);
-		void handleEvent(SDL_Event* event, GameField* gameField);
+		
+		// Delete copy constructor and assignment operator
+		SmileBar(const SmileBar&) = delete;
+		SmileBar& operator=(const SmileBar&) = delete;
+		
+		void render(Texture& texture, SDL_Renderer* renderer);
+		void handleEvent(const SDL_Event* event, GameField* gameField);
 
 	private:
-		Config* cfg;
+		std::shared_ptr<Config> cfg;
 		bool timerRunning;
 		size_t startTimeSecs;
 		size_t curTimeSecs;
 		int minesInit;
 		int minesLeft;
 		size_t smileState;
-		size_t now();
+		
+		size_t now() const;
 		void startTimer();
 		void stopTimer();
 		void incrMines();
 		void decrMines();
-		void renderTimeCount(Texture& texture, SDL_Renderer* const renderer);
-		void renderMineCount(Texture& texture, SDL_Renderer* const renderer);
-		void renderSmile(Texture& texture, SDL_Renderer* const renderer);
-		void renderCount(int x, int y, int count, Texture& texture, SDL_Renderer* const renderer);
+		void renderTimeCount(Texture& texture, SDL_Renderer* renderer);
+		void renderMineCount(Texture& texture, SDL_Renderer* renderer);
+		void renderSmile(Texture& texture, SDL_Renderer* renderer);
+		void renderCount(int x, int y, int count, Texture& texture, SDL_Renderer* renderer);
 		void reset();
-		std::deque<int> toDigits(int val);
-		bool insideSmile(int x, int y);
+		std::deque<int> toDigits(int val) const;
+		bool insideSmile(int x, int y) const;
 };
 
 #endif

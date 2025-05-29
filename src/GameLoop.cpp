@@ -36,7 +36,7 @@ GameLoop::GameLoop(Config* config) : cfg(config), window(nullptr), renderer(null
 						Config::BACKGROUND_COLOR_B,
 						Config::BACKGROUND_COLOR_OPAQUE);
 				SDL_RenderPresent(renderer);
-				smileBar = new SmileBar(cfg);
+				smileBar = new SmileBar(std::shared_ptr<Config>(cfg));
 				gameField = new GameField(cfg);
 			}
 		}

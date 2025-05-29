@@ -16,11 +16,18 @@ static const int DIGITS[10] =
 	Clip::DIGIT_9
 };
 
-SmileBar::SmileBar(Config* config) : cfg(config), timerRunning(false), startTimeSecs(0), curTimeSecs(0), minesInit(cfg->getMineCnt()), minesLeft(cfg->getMineCnt()), smileState(Clip::SMILE_INIT)
+SmileBar::SmileBar(std::shared_ptr<Config> config)
+    : cfg(config)
+    , timerRunning(false)
+    , startTimeSecs(0)
+    , curTimeSecs(0)
+    , minesInit(config ? config->getMineCnt() : 0)
+    , minesLeft(config ? config->getMineCnt() : 0)
+    , smileState(0) // Changed from Clip::SMILE_INIT to match size_t type
 {
 }
 
-size_t SmileBar::now()
+size_t SmileBar::now() const
 {
 	return std::chrono::duration_cast<std::chrono::seconds>(
 			std::chrono::system_clock::now().time_since_epoch()
@@ -55,7 +62,7 @@ void SmileBar::render(Texture& texture, SDL_Renderer* const renderer)
 	renderTimeCount(texture, renderer);
 }
 
-void SmileBar::handleEvent(SDL_Event* event, GameField* gameField)
+void SmileBar::handleEvent(const SDL_Event* event, GameField* gameField)
 {
 	if (event->type == SDL_MOUSEBUTTONDOWN)
 	{
@@ -129,7 +136,7 @@ void SmileBar::reset()
 	minesLeft = minesInit;
 }
 
-std::deque<int> SmileBar::toDigits(int val)
+std::deque<int> SmileBar::toDigits(int val) const
 {
 	std::deque<int> reversedVal;
 	while (val > 0)
@@ -137,10 +144,10 @@ std::deque<int> SmileBar::toDigits(int val)
 		reversedVal.push_front(val % 10);
 		val /= 10;
 	}
-	return std::move(reversedVal);
+	return reversedVal;
 }
 
-bool SmileBar::insideSmile(int x, int y)
+bool SmileBar::insideSmile(int x, int y) const
 {
 	const SDL_Rect* clip = cfg->getClip(Clip::SMILE_INIT);
 	int x0 = cfg->getWinWidth() / 2 - clip->w / 2;
